@@ -1,4 +1,4 @@
-import { GetStaticProps } from "next"
+import { GetStaticPaths, GetStaticProps } from "next"
 import Link from 'next/link';
 import Head from "next/head";
 import { RichText } from "prismic-dom";
@@ -57,16 +57,28 @@ export default function PostPreview({post}:PostPreviewProps) {
   )
 }
 
-export const getStaticPaths = () => {
+export const getStaticPaths: GetStaticPaths = async () => {
   return {
-    paths: [],
-    fallback: 'blocking'
+    //  paths: quais posts precisam ser gerados de forma estática durante a build
+    paths: [
+      // { params: { slug: 'Mapas com React usando Leaflet' } }
+    ],
+
+    /* fallback: true → quando a página é requisitada mas ainda não foi gerada estaticamente 
+    então ela é carregada no browser.
+
+    fallback: false →  quando a página é requisitada mas ainda não foi gerada estaticamente 
+    então  é retornado um erro no browser (error 404).
+
+    fallback: blocking →  quando a página é requisitada mas ainda não foi gerada estaticamente 
+    então ela é carregada no servidor node do nextJs pela função getStaticProps */
+
+    fallback: 'blocking' // true, false and blocking
   }
 }
 
 export const getStaticProps: GetStaticProps = async ({params}) => {
 
-  
   const {slug} = params;
 
   const prismic = getPrismicClient();
@@ -88,6 +100,7 @@ export const getStaticProps: GetStaticProps = async ({params}) => {
   return {
     props: {
       post
-    }
+    },
+    revalidate: 60 * 30, // 30 minutes
   }
 }
